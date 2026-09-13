@@ -41,4 +41,15 @@ describe("ai.chat", () => {
       })
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
+
+  it("rejects an unsupported model preference before calling the model", async () => {
+    const caller = appRouter.createCaller(createContext());
+    await expect(
+      caller.ai.chat({
+        mode: "daily",
+        modelPreference: "claude-instant" as "auto",
+        messages: [{ role: "user", content: "Halo" }],
+      })
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
 });

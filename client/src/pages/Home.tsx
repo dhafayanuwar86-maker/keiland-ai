@@ -54,6 +54,7 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>(starterMessages);
   const [mode, setMode] = useState<Mode>("daily");
   const [domain, setDomain] = useState<KnowledgeDomain>("general");
+  const [modelPreference, setModelPreference] = useState<"auto" | "claude-opus-4-7" | "claude-opus-4-6" | "gpt-5-mini">("auto");
   const [memory, setMemory] = useState("");
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [sources, setSources] = useState<KnowledgeSource[]>([]);
@@ -87,6 +88,7 @@ export default function Home() {
     chatMutation.mutate({
       mode,
       domain,
+      modelPreference,
       memory: memory.trim() || undefined,
       sources: relevantSources.length ? relevantSources : undefined,
       messages: next.filter((item) => item.role !== "system").map((item) => ({ role: item.role as "user" | "assistant", content: item.content })),
@@ -122,7 +124,7 @@ export default function Home() {
         <div className="relative">
           <div className="mb-10 flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-2xl bg-[#ef795f]"><Sparkles className="size-5" /></div><div><p className="font-display text-lg font-semibold">Keiland AI 1.0</p><p className="text-[11px] uppercase tracking-[0.22em] text-white/45">Asisten serbaguna Anda</p></div></div>
           <div className="mb-8"><p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ef795f]">Workspace</p><h1 className="font-display max-w-[230px] text-3xl font-semibold leading-[1.08] tracking-[-0.04em]">AI yang mengenal cara kerja Anda.</h1><p className="mt-4 max-w-[240px] text-sm leading-6 text-white/60">Pilih mode, simpan konteks penting, dan ajak Keiland AI bekerja lebih spesifik.</p></div>
-          <div className="space-y-3"><div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4"><div className="mb-3 flex items-center gap-2 text-xs font-medium text-white/75"><Bot className="size-4 text-[#ef795f]" /> Model aktif</div><p className="font-mono text-xs text-white/45">live catalog · gpt-5-mini</p><div className="mt-3 flex items-center gap-2 text-[11px] text-emerald-300"><span className="size-1.5 rounded-full bg-emerald-300" /> Upgrade-ready</div></div>
+          <div className="space-y-3"><div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4"><div className="mb-3 flex items-center gap-2 text-xs font-medium text-white/75"><Bot className="size-4 text-[#ef795f]" /> Model aktif</div><select value={modelPreference} onChange={(event) => setModelPreference(event.target.value as typeof modelPreference)} className="w-full rounded-lg border border-white/10 bg-[#182536] px-2 py-2 font-mono text-[11px] text-white/75 outline-none"><option value="auto">Auto · hemat</option><option value="claude-opus-4-7">Claude Opus 4.7</option><option value="claude-opus-4-6">Claude Opus 4.6</option><option value="gpt-5-mini">GPT-5 mini</option></select><div className="mt-3 flex items-center gap-2 text-[11px] text-emerald-300"><span className="size-1.5 rounded-full bg-emerald-300" /> Katalog live</div></div>
             <button onClick={() => setMemoryOpen(!memoryOpen)} className="w-full rounded-2xl border border-white/10 bg-white/[0.06] p-4 text-left text-xs leading-5 text-white/55 transition hover:bg-white/10"><p className="mb-1 font-medium text-white/80">Memory saya {memory ? "· aktif" : "· kosong"}</p><p>{memory ? "Keiland AI memakai konteks yang Anda simpan." : "Tambahkan profil, tujuan, atau preferensi Anda."}</p></button>
             {memoryOpen && <div className="rounded-2xl border border-[#ef795f]/30 bg-[#ef795f]/10 p-3"><textarea value={memory} onChange={(e) => setMemory(e.target.value)} placeholder="Contoh: Saya menjalankan toko pakaian online..." className="min-h-24 w-full resize-none rounded-xl border border-white/10 bg-black/10 p-3 text-xs text-white outline-none placeholder:text-white/35" /><button onClick={clearMemory} className="mt-2 flex items-center gap-1 text-[11px] text-white/50 hover:text-white"><Trash2 className="size-3" /> Hapus memory</button></div>}</div>
         </div>

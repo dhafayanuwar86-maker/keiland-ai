@@ -10,6 +10,7 @@ import { evaluationSummary } from "../shared/evaluationDataset";
 
 const modeSchema = z.enum(["daily", "business", "marketing"]);
 const domainSchema = z.enum(["general", "medical", "space", "prehistory"]);
+const modelPreferenceSchema = z.enum(["auto", "claude-opus-4-7", "claude-opus-4-6", "gpt-5-mini"]);
 const chatMessageSchema = z.object({ role: z.enum(["user", "assistant"]), content: z.string().trim().min(1).max(12000) });
 const sourceSchema = z.object({ id: z.string().max(120).optional(), name: z.string().min(1).max(180), excerpt: z.string().min(1).max(9000), page: z.number().int().positive().optional(), chunk: z.number().int().positive().optional(), url: z.string().url().max(500).optional(), score: z.number().min(0).max(1).optional(), retrievalMethod: z.string().max(40).optional() });
 
@@ -34,6 +35,7 @@ export const appRouter = router({
     chat: publicProcedure.input(z.object({
       mode: modeSchema,
       domain: domainSchema.default("general"),
+      modelPreference: modelPreferenceSchema.default("auto"),
       memory: z.string().max(8000).optional(),
       sources: z.array(sourceSchema).max(8).optional(),
       messages: z.array(chatMessageSchema).min(1).max(24),
@@ -41,7 +43,9 @@ export const appRouter = router({
       try {
         const catalog = await listLLMModels();
         const available = catalog.data.map((model) => model.id);
-        const model = available.includes("gpt-5-mini") ? "gpt-5-mini" : available.find((id) => id.startsWith("gpt-5")) ?? available[0];
+        const preferred = input.modelPreference === "auto" ? ["gpt-5-mini", "claude-opus-4-7", "claude-opus-4-6"] : [input.modelPreference, "gpt-5-mini", "claude-opus-4-7", "claude-opus-4-6"];
+        const model = preferred.find((id) => available.includes(id)) ?? available[0];
+        if (!model) throw new Error("No LLM model available");
         const domain = getDomainContext(input.domain);
         const sourceContext = (input.sources ?? []).map((source, index) => `[Sumber ${index + 1}: ${source.name}]\n${source.excerpt}`).join("\n\n");
         const sourceNames = (input.sources ?? []).map((source) => `${source.name}${source.page ? ` · halaman ${source.page}` : source.chunk ? ` · bagian ${source.chunk}` : ""}`);
