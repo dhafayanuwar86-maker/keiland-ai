@@ -30,4 +30,15 @@ describe("ai.chat", () => {
       })
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
+
+  it("rejects an unsupported knowledge domain before calling the model", async () => {
+    const caller = appRouter.createCaller(createContext());
+    await expect(
+      caller.ai.chat({
+        mode: "daily",
+        domain: "biology" as "general",
+        messages: [{ role: "user", content: "Apa itu?" }],
+      })
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
 });
