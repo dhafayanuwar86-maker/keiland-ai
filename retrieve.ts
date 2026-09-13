@@ -1,6 +1,6 @@
 import type { DocumentChunk, RagOptions, SearchHit } from './types.js';
 
-const tokenize = (text: string) => text.toLowerCase().normalize('NFKD').replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter((t) => t.length > 2);
+const tokenize = (text: string) => text.toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/).filter((t) => t.length > 2);
 
 export function retrieve(index: DocumentChunk[], query: string, options: RagOptions = {}): SearchHit[] {
   const topK = options.topK ?? 5;
@@ -13,14 +13,14 @@ export function retrieve(index: DocumentChunk[], query: string, options: RagOpti
     return true;
   });
   const documentFrequency = new Map<string, number>();
-  for (const doc of allowed) for (const token of Array.from(new Set(tokenize(doc.text)))) documentFrequency.set(token, (documentFrequency.get(token) ?? 0) + 1);
+  for (const doc of allowed) for (const token of new Set(tokenize(doc.text))) documentFrequency.set(token, (documentFrequency.get(token) ?? 0) + 1);
   const n = Math.max(1, allowed.length);
   return allowed.map((doc) => {
     const tokens = tokenize(doc.text);
     const counts = new Map<string, number>();
     for (const token of tokens) counts.set(token, (counts.get(token) ?? 0) + 1);
     let score = 0;
-    for (const term of Array.from(q)) {
+    for (const term of q) {
       const tf = (counts.get(term) ?? 0) / Math.max(1, tokens.length);
       const idf = Math.log((n + 1) / ((documentFrequency.get(term) ?? 0) + 1)) + 1;
       score += tf * idf;
