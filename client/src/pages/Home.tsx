@@ -92,7 +92,7 @@ export default function Home() {
       memory: memory.trim() || undefined,
       sources: relevantSources.length ? relevantSources : undefined,
       messages: next.filter((item) => item.role !== "system").map((item) => ({ role: item.role as "user" | "assistant", content: item.content })),
-    }, { onSuccess: (response) => setMessages((current) => [...current, { role: "assistant", content: response.content }]) });
+    }, { onSuccess: (response) => setMessages((current) => [...current, { role: "assistant", content: response.content, model: response.model }]) });
   };
   const resetChat = () => { setMessages(starterMessages); setDocumentName(""); localStorage.removeItem("keiland-ai-messages"); };
   const clearMemory = () => { setMemory(""); localStorage.removeItem("keiland-ai-memory"); };
