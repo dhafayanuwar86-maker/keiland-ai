@@ -4,7 +4,13 @@ import { chunkDocument } from './chunking.js';
 import type { DocumentChunk } from './types.js';
 
 export async function createIndexFromDirectory(directory: string): Promise<DocumentChunk[]> {
-  const names = await readdir(directory);
+  let names: string[];
+  try {
+    names = await readdir(directory);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    throw error;
+  }
   const files = names.filter((name) => ['.md', '.txt'].includes(extname(name).toLowerCase()));
   const all: DocumentChunk[] = [];
   for (const name of files) {
